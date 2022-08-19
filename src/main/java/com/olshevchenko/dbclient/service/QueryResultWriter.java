@@ -68,11 +68,15 @@ public class QueryResultWriter {
     public static void writeAction(String operator, int rows) {
         String row = "row";
         String was = "was";
+        String ed = "ed.";
         if (rows > 1) {
             row = "rows";
             was = "were";
         }
-        System.out.println("Command " + operator + " was successfully executed. " + rows + " " + row + " " + was + " " + operator.toLowerCase() + "ed.");
+        if (operator.toLowerCase().endsWith("e")) {
+            ed = "d.";
+        }
+        System.out.println("Command " + operator + " was successfully executed. " + rows + " " + row + " " + was + " " + operator.toLowerCase() + ed);
     }
 
     private static void extendWidthOfCellAndAppendValue(StringBuilder sb, String value, int columnWidth) {

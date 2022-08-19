@@ -5,9 +5,7 @@ import com.olshevchenko.dbclient.entity.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
  * @author Oleksandr Shevchenko
@@ -21,11 +19,16 @@ public class QueryHandler {
 
     public void handle() throws SQLException {
         String operator = query.split(" ")[0].toUpperCase();
-        System.out.println("Query " + operator + "... was successfully executed.");
-        if (operator.equals(SELECT)) {
-            handleResultSet();
+        String tableName = detectTableNameFromQuery(operator);
+        if (!isTableExists(tableName)) {
+            System.out.println("Table with name '" + tableName + "' does not exist! Enter correct table name");
         } else {
-            handleAction(operator);
+            System.out.println("Query " + operator + "... was successfully executed.");
+            if (operator.equals(SELECT)) {
+                handleResultSet();
+            } else {
+                handleAction(operator);
+            }
         }
     }
 
@@ -47,6 +50,38 @@ public class QueryHandler {
             throw new RuntimeException(query, e);
         }
     }
+
+    private String detectTableNameFromQuery(String operator) {
+        String tableName = null;
+        String[] s = query.split(" ");
+        for (int i = 0; i < s.length; i++) {
+            if (s[i].equalsIgnoreCase("FROM")) {
+                tableName = s[i+1];
+            }
+            if (!operator.equalsIgnoreCase("CREATE") && s[i].equalsIgnoreCase("TABLE")) {
+                tableName = s[i+1];
+            }
+            if (s[i].equalsIgnoreCase("INTO")) {
+                tableName = s[i+1];
+            }
+            if (s[i].equalsIgnoreCase("UPDATE")) {
+                tableName = s[i+1];
+            }
+        }
+        return tableName;
+    }
+
+    private boolean isTableExists(String tableName) {
+        String query = "SELECT count(*) FROM information_schema.tables WHERE table_name = '"+tableName+"' LIMIT 1;";
+        try {
+            ResultSet rs = statement.executeQuery(query);
+            rs.next();
+            return rs.getInt(1) != 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(query, e);
+        }
+    }
+
 
 
 }
