@@ -1,6 +1,6 @@
 package com.olshevchenko.dbclient;
 
-import com.olshevchenko.dbclient.Service.QueryHandler;
+import com.olshevchenko.dbclient.service.QueryHandler;
 import com.olshevchenko.dbclient.utils.ConnectionManager;
 
 import java.sql.Connection;

@@ -1,4 +1,4 @@
-package com.olshevchenko.dbclient.Service;
+package com.olshevchenko.dbclient.service;
 
 import com.olshevchenko.dbclient.entity.Table;
 
@@ -38,7 +38,7 @@ public class DataMapper {
             }
             lines.add(line);
         }
-        table.setLines(lines);
+        table.setValues(lines);
 
         return table;
     }

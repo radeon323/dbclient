@@ -15,5 +15,5 @@ import java.util.List;
 public class Table {
     private String name;
     private List<String> headers;
-    private List<List<Object>> lines;
+    private List<List<Object>> values;
 }

@@ -1,4 +1,4 @@
-package com.olshevchenko.dbclient.Service;
+package com.olshevchenko.dbclient.service;
 
 import com.olshevchenko.dbclient.entity.Table;
 import org.junit.jupiter.api.Test;
