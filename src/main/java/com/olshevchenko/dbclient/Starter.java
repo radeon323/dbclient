@@ -20,7 +20,7 @@ public class Starter {
             while (true) {
                 System.out.println("Enter your query: ");
                 String query = scanner.nextLine();
-                try (Statement statement = connection.createStatement();) {
+                try (Statement statement = connection.createStatement()) {
                     QueryHandler queryHandler = new QueryHandler(statement, query);
                     queryHandler.handle();
                 } catch (SQLException e) {

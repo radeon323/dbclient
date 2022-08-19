@@ -41,8 +41,8 @@ public class QueryHandler {
 
     private void handleAction(String operator) {
         try {
-            statement.executeUpdate(query);
-            QueryResultWriter.writeAction(operator);
+            int rows = statement.executeUpdate(query);
+            QueryResultWriter.writeAction(operator, rows);
         } catch (SQLException e) {
             throw new RuntimeException(query, e);
         }
