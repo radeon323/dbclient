@@ -7,7 +7,7 @@ import java.util.*;
 /**
  * @author Oleksandr Shevchenko
  */
-public class QueryResultWriter {
+public class QueryResultConsoleWriter {
 
     public static void writeTable(Table table) {
         System.out.println("Table '" + table.getName() + "':");

@@ -36,7 +36,8 @@ public class QueryHandler {
         try {
             ResultSet rs = statement.executeQuery(query);
             Table table = DataMapper.mapRow(rs);
-            QueryResultWriter.writeTable(table);
+            QueryResultConsoleWriter.writeTable(table);
+            QueryResultHtmlWriter.writeTable(table);
         } catch (SQLException e) {
             throw new RuntimeException(query, e);
         }
@@ -45,7 +46,7 @@ public class QueryHandler {
     private void handleAction(String operator) {
         try {
             int rows = statement.executeUpdate(query);
-            QueryResultWriter.writeAction(operator, rows);
+            QueryResultConsoleWriter.writeAction(operator, rows);
         } catch (SQLException e) {
             throw new RuntimeException(query, e);
         }
@@ -72,7 +73,7 @@ public class QueryHandler {
     }
 
     private boolean isTableExists(String tableName) {
-        String query = "SELECT count(*) FROM information_schema.tables WHERE table_name = '"+tableName+"' LIMIT 1;";
+        String query = "SELECT count(*) FROM information_schema.tables WHERE table_name = '" + tableName + "' LIMIT 1;";
         try {
             ResultSet rs = statement.executeQuery(query);
             rs.next();
