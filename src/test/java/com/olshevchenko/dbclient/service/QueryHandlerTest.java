@@ -1,38 +1,44 @@
 package com.olshevchenko.dbclient.service;
 
-import org.junit.jupiter.api.BeforeEach;
+import com.olshevchenko.dbclient.entity.Table;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Oleksandr Shevchenko
  */
 @ExtendWith(MockitoExtension.class)
 class QueryHandlerTest {
-    private static String SELECT = "SELECT";
-    private Statement statement;
-    private String query;
+    private final String query = "SELECT * FROM persons";
 
-    @BeforeEach
-    public void before() throws Exception {
-        Statement statement = mock(Statement.class);
-        ResultSet rs = mock(ResultSet.class);
-        when(statement.executeQuery(anyString())).thenReturn(rs);
-        when(statement.executeUpdate(anyString())).thenReturn(1);
-    }
+    @Mock
+    private Statement statement;
+
+    @Mock
+    private ResultSet rs;
+
 
     //TODO:  x3
     @Test
-    void handle() {
+    void handle() throws SQLException {
 
+        ResultSetMetaData rsMetaData = mock(ResultSetMetaData.class);
+
+        when(statement.executeQuery(query)).thenReturn(rs);
+        when(rs.getMetaData()).thenReturn(mock(ResultSetMetaData.class));
+
+        QueryHandler queryHandler = new QueryHandler(statement, query);
+        Table table = new Table();
+        queryHandler.handle();
     }
 
 

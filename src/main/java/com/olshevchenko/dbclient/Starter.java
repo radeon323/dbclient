@@ -18,7 +18,7 @@ public class Starter {
             Scanner scanner = new Scanner(System.in);
 
             while (true) {
-                System.out.println("Enter your query: ");
+                System.out.print("Enter your query: ");
                 String query = scanner.nextLine();
                 try (Statement statement = connection.createStatement()) {
                     QueryHandler queryHandler = new QueryHandler(statement, query);

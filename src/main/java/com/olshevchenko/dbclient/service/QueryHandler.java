@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Oleksandr Shevchenko
@@ -20,19 +22,24 @@ public class QueryHandler {
     public void handle() throws SQLException {
         String operator = query.split(" ")[0].toUpperCase();
         String tableName = detectTableNameFromQuery(operator);
-        if (!isTableExists(tableName)) {
+        if (tableName.equalsIgnoreCase("INFORMATION_SCHEMA.TABLES")) {
+            List<String> tableNames = getAllTableNames();
+            for (String name : tableNames) {
+                handleResultSet("SELECT * FROM " + name);
+            }
+        } else if (!isTableExists(tableName) && !operator.equalsIgnoreCase("CREATE")) {
             System.out.println("Table with name '" + tableName + "' does not exist! Enter correct table name");
         } else {
             System.out.println("Query " + operator + "... was successfully executed.");
             if (operator.equals(SELECT)) {
-                handleResultSet();
+                handleResultSet(query);
             } else {
                 handleAction(operator);
             }
         }
     }
 
-    private void handleResultSet() {
+    private void handleResultSet(String query) {
         try {
             ResultSet rs = statement.executeQuery(query);
             Table table = DataMapper.mapRow(rs);
@@ -59,7 +66,7 @@ public class QueryHandler {
             if (s[i].equalsIgnoreCase("FROM")) {
                 tableName = s[i+1];
             }
-            if (!operator.equalsIgnoreCase("CREATE") && s[i].equalsIgnoreCase("TABLE")) {
+            if (operator.equalsIgnoreCase("CREATE") && s[i].equalsIgnoreCase("TABLE")) {
                 tableName = s[i+1];
             }
             if (s[i].equalsIgnoreCase("INTO")) {
@@ -78,6 +85,20 @@ public class QueryHandler {
             ResultSet rs = statement.executeQuery(query);
             rs.next();
             return rs.getInt(1) != 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(query, e);
+        }
+    }
+
+    private List<String> getAllTableNames() {
+        String query = "SELECT table_name FROM information_schema.tables where table_schema = 'public'";
+        List<String> tableNames = new ArrayList<>();
+        try {
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                tableNames.add(rs.getString(1));
+            }
+            return tableNames;
         } catch (SQLException e) {
             throw new RuntimeException(query, e);
         }
