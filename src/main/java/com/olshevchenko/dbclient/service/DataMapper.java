@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class DataMapper {
 
-    public static Table mapRow(ResultSet resultSet) throws SQLException {
+    public Table mapRow(ResultSet resultSet) throws SQLException {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
         Table table = new Table();
@@ -29,16 +29,16 @@ public class DataMapper {
         }
         table.setHeaders(headers);
 
-        //set lines
-        List<List<Object>> lines = new ArrayList<>();
+        //set rows
+        List<List<Object>> rows = new ArrayList<>();
         while (resultSet.next()) {
-            List<Object> line = new ArrayList<>();
+            List<Object> row = new ArrayList<>();
             for (int i = 1; i <= columnCount; i++) {
-                line.add(resultSet.getObject(i));
+                row.add(resultSet.getObject(i));
             }
-            lines.add(line);
+            rows.add(row);
         }
-        table.setValues(lines);
+        table.setValues(rows);
 
         return table;
     }

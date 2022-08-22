@@ -1,11 +1,10 @@
 package com.olshevchenko.dbclient;
 
 import com.olshevchenko.dbclient.service.QueryHandler;
-import com.olshevchenko.dbclient.utils.ConnectionManager;
+import com.olshevchenko.dbclient.utils.PropertiesReader;
+import org.postgresql.ds.PGSimpleDataSource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Properties;
 import java.util.Scanner;
 
 /**
@@ -14,24 +13,23 @@ import java.util.Scanner;
 public class Starter {
 
     public static void main(String[] args) {
-        try (Connection connection = ConnectionManager.getConnection();) {
-            Scanner scanner = new Scanner(System.in);
+        Properties properties = PropertiesReader.getProperties();
+        final String jdbcName = properties.getProperty("jdbc_name");
+        final String jdbcUser = properties.getProperty("jdbc_user");
+        final String jdbcPassword = properties.getProperty("jdbc_password");
 
-            while (true) {
-                System.out.print("Enter your query: ");
-                String query = scanner.nextLine();
-                try (Statement statement = connection.createStatement()) {
-                    QueryHandler queryHandler = new QueryHandler(statement, query);
-                    queryHandler.handle();
-                } catch (SQLException e) {
-                    throw new RuntimeException("Database command execution error", e);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Database access error", e);
+        PGSimpleDataSource pgSimpleDataSource = new PGSimpleDataSource();
+        pgSimpleDataSource.setDatabaseName(jdbcName);
+        pgSimpleDataSource.setUser(jdbcUser);
+        pgSimpleDataSource.setPassword(jdbcPassword);
+
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.print("Enter your query: ");
+            String query = scanner.nextLine();
+                QueryHandler queryHandler = new QueryHandler(pgSimpleDataSource, query);
+                queryHandler.handle();
         }
-
-
     }
 
 

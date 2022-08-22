@@ -1,10 +1,10 @@
 package com.olshevchenko.dbclient.service;
 
-
 import com.olshevchenko.dbclient.entity.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +16,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QueryHandler {
     private static final String SELECT = "SELECT";
-    private final Statement statement;
+    private static final DataMapper dataMapper = new DataMapper();
+    private final DataSource dataSource;
     private final String query;
 
-    public void handle() throws SQLException {
+    public void handle() {
         String operator = query.split(" ")[0].toUpperCase();
         String tableName = detectTableNameFromQuery(operator);
+
         if (tableName.equalsIgnoreCase("INFORMATION_SCHEMA.TABLES")) {
             List<String> tableNames = getAllTableNames();
             for (String name : tableNames) {
@@ -39,10 +41,12 @@ public class QueryHandler {
         }
     }
 
-    private void handleResultSet(String query) {
-        try {
-            ResultSet rs = statement.executeQuery(query);
-            Table table = DataMapper.mapRow(rs);
+    protected void handleResultSet(String query) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet rs = preparedStatement.executeQuery();) {
+
+            Table table = dataMapper.mapRow(rs);
             QueryResultConsoleWriter.writeTable(table);
             QueryResultHtmlWriter.writeTable(table);
         } catch (SQLException e) {
@@ -51,7 +55,9 @@ public class QueryHandler {
     }
 
     private void handleAction(String operator) {
-        try {
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement();) {
+
             int rows = statement.executeUpdate(query);
             QueryResultConsoleWriter.writeAction(operator, rows);
         } catch (SQLException e) {
@@ -81,8 +87,10 @@ public class QueryHandler {
 
     private boolean isTableExists(String tableName) {
         String query = "SELECT count(*) FROM information_schema.tables WHERE table_name = '" + tableName + "' LIMIT 1;";
-        try {
-            ResultSet rs = statement.executeQuery(query);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet rs = preparedStatement.executeQuery();) {
+
             rs.next();
             return rs.getInt(1) != 0;
         } catch (SQLException e) {
@@ -93,8 +101,10 @@ public class QueryHandler {
     private List<String> getAllTableNames() {
         String query = "SELECT table_name FROM information_schema.tables where table_schema = 'public'";
         List<String> tableNames = new ArrayList<>();
-        try {
-            ResultSet rs = statement.executeQuery(query);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet rs = preparedStatement.executeQuery();) {
+
             while (rs.next()) {
                 tableNames.add(rs.getString(1));
             }
