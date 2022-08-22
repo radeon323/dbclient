@@ -17,19 +17,25 @@ public class DataMapper {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
         Table table = new Table();
+        table.setName(getTableName(metaData));
+        table.setHeaders(getHeaders(metaData, columnCount));
+        table.setValues(getRows(resultSet, columnCount));
+        return table;
+    }
 
-        //set table name
-        String tableName = metaData.getTableName(1);
-        table.setName(tableName);
+    protected String getTableName(ResultSetMetaData metaData) throws SQLException {
+        return metaData.getTableName(1);
+    }
 
-        //set headers
+    protected List<String> getHeaders(ResultSetMetaData metaData, int columnCount) throws SQLException {
         List<String> headers = new ArrayList<>();
         for (int i = 1; i <= columnCount; i++) {
             headers.add(metaData.getColumnName(i));
         }
-        table.setHeaders(headers);
+        return headers;
+    }
 
-        //set rows
+    protected List<List<Object>> getRows(ResultSet resultSet, int columnCount) throws SQLException {
         List<List<Object>> rows = new ArrayList<>();
         while (resultSet.next()) {
             List<Object> row = new ArrayList<>();
@@ -38,8 +44,8 @@ public class DataMapper {
             }
             rows.add(row);
         }
-        table.setValues(rows);
-
-        return table;
+        return rows;
     }
+
+
 }

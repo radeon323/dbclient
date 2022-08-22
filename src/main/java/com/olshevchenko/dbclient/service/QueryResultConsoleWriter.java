@@ -95,11 +95,11 @@ public class QueryResultConsoleWriter {
         }
     }
 
-    private static void replaceLastSymbol(StringBuilder sb, int tableWidth, String symbol) {
+    protected static void replaceLastSymbol(StringBuilder sb, int tableWidth, String symbol) {
         sb.replace(tableWidth, tableWidth + 1, symbol);
     }
 
-    private static int detectMaxWidthOfElement(List<String> headers, List<List<Object>> values, int columnNumber) {
+    protected static int detectMaxWidthOfElement(List<String> headers, List<List<Object>> values, int columnNumber) {
         List<String> columnValues = new ArrayList<>();
         columnValues.add(headers.get(columnNumber));
         for (List<Object> value : values) {
