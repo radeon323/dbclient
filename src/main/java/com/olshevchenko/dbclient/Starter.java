@@ -1,11 +1,14 @@
 package com.olshevchenko.dbclient;
 
+import com.olshevchenko.dbclient.entity.QueryResult;
 import com.olshevchenko.dbclient.service.QueryHandler;
-import com.olshevchenko.dbclient.utils.ConnectionManager;
+import com.olshevchenko.dbclient.service.QueryResultConsoleWriter;
+import com.olshevchenko.dbclient.service.QueryResultHtmlWriter;
+import com.olshevchenko.dbclient.utils.DriverConfig;
+import com.olshevchenko.dbclient.utils.PropertiesReader;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import javax.sql.DataSource;
+import java.util.Properties;
 import java.util.Scanner;
 
 /**
@@ -14,24 +17,25 @@ import java.util.Scanner;
 public class Starter {
 
     public static void main(String[] args) {
-        try (Connection connection = ConnectionManager.getConnection();) {
-            Scanner scanner = new Scanner(System.in);
+        Properties properties = PropertiesReader.getProperties("application.properties");
+        String pathToHtmlResult = properties.getProperty("report.html");
 
-            while (true) {
-                System.out.print("Enter your query: ");
-                String query = scanner.nextLine();
-                try (Statement statement = connection.createStatement()) {
-                    QueryHandler queryHandler = new QueryHandler(statement, query);
-                    queryHandler.handle();
-                } catch (SQLException e) {
-                    throw new RuntimeException("Database command execution error", e);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Database access error", e);
+        DriverConfig driverConfig = new DriverConfig(properties);
+        DataSource driver = driverConfig.dataSource();
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.print("Enter your query: ");
+            String query = scanner.nextLine();
+
+            QueryHandler queryHandler = new QueryHandler(driver);
+            QueryResult queryResult = queryHandler.handle(query);
+
+            QueryResultConsoleWriter consoleWriter = new QueryResultConsoleWriter(queryResult);
+            consoleWriter.writeResult();
+
+            QueryResultHtmlWriter htmlWriter = new QueryResultHtmlWriter(queryResult, pathToHtmlResult);
+            htmlWriter.writeResult();
         }
-
-
     }
 
 

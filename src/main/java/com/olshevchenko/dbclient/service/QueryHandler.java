@@ -1,109 +1,61 @@
 package com.olshevchenko.dbclient.service;
 
-
-import com.olshevchenko.dbclient.entity.Table;
+import com.olshevchenko.dbclient.entity.QueryResult;
+import com.olshevchenko.dbclient.entity.SqlOperator;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.sql.DataSource;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Oleksandr Shevchenko
  */
+@Slf4j
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class QueryHandler {
-    private static final String SELECT = "SELECT";
-    private final Statement statement;
-    private final String query;
+    private final DataSource dataSource;
 
-    public void handle() throws SQLException {
-        String operator = query.split(" ")[0].toUpperCase();
-        String tableName = detectTableNameFromQuery(operator);
-        if (tableName.equalsIgnoreCase("INFORMATION_SCHEMA.TABLES")) {
-            List<String> tableNames = getAllTableNames();
-            for (String name : tableNames) {
-                handleResultSet("SELECT * FROM " + name);
-            }
-        } else if (!isTableExists(tableName) && !operator.equalsIgnoreCase("CREATE")) {
-            System.out.println("Table with name '" + tableName + "' does not exist! Enter correct table name");
+    public QueryResult handle(String query) {
+        SqlOperator operator = SqlOperator.getOperatorByName(query);
+        if (operator.equals(SqlOperator.SELECT)) {
+            return handleResultSet(query, operator);
         } else {
-            System.out.println("Query " + operator + "... was successfully executed.");
-            if (operator.equals(SELECT)) {
-                handleResultSet(query);
-            } else {
-                handleAction(operator);
-            }
+            return handleAction(query, operator);
         }
     }
 
-    private void handleResultSet(String query) {
-        try {
-            ResultSet rs = statement.executeQuery(query);
-            Table table = DataMapper.mapRow(rs);
-            QueryResultConsoleWriter.writeTable(table);
-            QueryResultHtmlWriter.writeTable(table);
+    QueryResult handleResultSet(String query, SqlOperator operator) {
+        try (Connection connection = dataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet rs = preparedStatement.executeQuery();) {
+
+            DataMapper dataMapper = new DataMapper();
+            QueryResult queryResult = dataMapper.extractQuery(rs);
+            queryResult.setOperator(operator);
+            return queryResult;
         } catch (SQLException e) {
-            throw new RuntimeException(query, e);
+            log.error("Cannot execute query: {} ", query, e);
+            throw new RuntimeException("Cannot execute query: {} " + query, e);
         }
     }
 
-    private void handleAction(String operator) {
-        try {
+    QueryResult handleAction(String query, SqlOperator operator) {
+        try (Connection connection = dataSource.getConnection();
+            Statement statement = connection.createStatement();) {
+
             int rows = statement.executeUpdate(query);
-            QueryResultConsoleWriter.writeAction(operator, rows);
+            QueryResult queryResult = new QueryResult();
+            queryResult.setRowsUpdated(rows);
+            queryResult.setOperator(operator);
+            return queryResult;
         } catch (SQLException e) {
-            throw new RuntimeException(query, e);
+            log.error("Cannot execute query: {} ", query, e);
+            throw new RuntimeException("Cannot execute query: {} " + query, e);
         }
     }
-
-    private String detectTableNameFromQuery(String operator) {
-        String tableName = null;
-        String[] s = query.split(" ");
-        for (int i = 0; i < s.length; i++) {
-            if (s[i].equalsIgnoreCase("FROM")) {
-                tableName = s[i+1];
-            }
-            if (operator.equalsIgnoreCase("CREATE") && s[i].equalsIgnoreCase("TABLE")) {
-                tableName = s[i+1];
-            }
-            if (s[i].equalsIgnoreCase("INTO")) {
-                tableName = s[i+1];
-            }
-            if (s[i].equalsIgnoreCase("UPDATE")) {
-                tableName = s[i+1];
-            }
-        }
-        return tableName;
-    }
-
-    private boolean isTableExists(String tableName) {
-        String query = "SELECT count(*) FROM information_schema.tables WHERE table_name = '" + tableName + "' LIMIT 1;";
-        try {
-            ResultSet rs = statement.executeQuery(query);
-            rs.next();
-            return rs.getInt(1) != 0;
-        } catch (SQLException e) {
-            throw new RuntimeException(query, e);
-        }
-    }
-
-    private List<String> getAllTableNames() {
-        String query = "SELECT table_name FROM information_schema.tables where table_schema = 'public'";
-        List<String> tableNames = new ArrayList<>();
-        try {
-            ResultSet rs = statement.executeQuery(query);
-            while (rs.next()) {
-                tableNames.add(rs.getString(1));
-            }
-            return tableNames;
-        } catch (SQLException e) {
-            throw new RuntimeException(query, e);
-        }
-    }
-
 
 
 }
