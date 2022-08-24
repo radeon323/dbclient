@@ -1,6 +1,6 @@
 package com.olshevchenko.dbclient.service;
 
-import com.olshevchenko.dbclient.entity.Table;
+import com.olshevchenko.dbclient.entity.QueryResult;
 import org.junit.jupiter.api.Test;
 
 import java.sql.ResultSet;
@@ -36,14 +36,14 @@ class DataMapperTest {
         when(rs.getObject("name")).thenReturn(List.of ("Sasha"));
         when(rs.getObject("age")).thenReturn(List.of (40));
 
-        Table table = dataMapper.mapRow(rs);
+        QueryResult queryResult = dataMapper.extractQuery(rs);
 
-        System.out.println(table);
+        System.out.println(queryResult);
 
-        assertEquals("persons", table.getName());
-        assertEquals(List.of ("id","name","age"), table.getHeaders());
+        assertEquals("persons", queryResult.getTableName());
+        assertEquals(List.of ("id","name","age"), queryResult.getHeaders());
 
-        assertEquals(List.of (List.of (1),List.of ("Sasha"),List.of (40)), table.getValues());
+        assertEquals(List.of (List.of (1),List.of ("Sasha"),List.of (40)), queryResult.getValues());
     }
 
 

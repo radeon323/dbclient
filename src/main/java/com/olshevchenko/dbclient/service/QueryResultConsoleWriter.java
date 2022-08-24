@@ -1,18 +1,30 @@
 package com.olshevchenko.dbclient.service;
 
-import com.olshevchenko.dbclient.entity.Table;
+import com.olshevchenko.dbclient.entity.QueryResult;
+import com.olshevchenko.dbclient.entity.SqlOperator;
+import lombok.AllArgsConstructor;
 
 import java.util.*;
 
 /**
  * @author Oleksandr Shevchenko
  */
+@AllArgsConstructor
 public class QueryResultConsoleWriter {
+    private QueryResult queryResult;
 
-    public static void writeTable(Table table) {
-        System.out.println("Table '" + table.getName() + "':");
-        List<String> headers = table.getHeaders();
-        List<List<Object>> values = table.getValues();
+    public void writeResult() {
+        if (queryResult.getOperator().equals(SqlOperator.SELECT)) {
+            writeTable();
+        } else {
+            writeAction();
+        }
+    }
+
+    void writeTable() {
+        System.out.println("Table '" + queryResult.getTableName() + "':");
+        List<String> headers = queryResult.getHeaders();
+        List<List<Object>> values = queryResult.getValues();
 
         StringBuilder upperBorder = new StringBuilder("┌");
         StringBuilder row = new StringBuilder("│ ");
@@ -63,9 +75,13 @@ public class QueryResultConsoleWriter {
         }
         System.out.println(bottomBorder);
 
+        System.out.println("Command " + queryResult.getOperator() + " was successfully executed.");
+
     }
 
-    public static void writeAction(String operator, int rows) {
+    void writeAction() {
+        SqlOperator operator = queryResult.getOperator();
+        int rows = queryResult.getRowsUpdated();
         String row = "row";
         String was = "was";
         String ed = "ed.";
@@ -73,13 +89,13 @@ public class QueryResultConsoleWriter {
             row = "rows";
             was = "were";
         }
-        if (operator.toLowerCase().endsWith("e")) {
+        if (operator.toString().toLowerCase().endsWith("e")) {
             ed = "d.";
         }
-        System.out.println("Command " + operator + " was successfully executed. " + rows + " " + row + " " + was + " " + operator.toLowerCase() + ed);
+        System.out.println("Command " + operator + " was successfully executed. " + rows + " " + row + " " + was + " " + operator.toString().toLowerCase() + ed);
     }
 
-    private static void extendWidthOfCellAndAppendValue(StringBuilder sb, String value, int columnWidth) {
+    private void extendWidthOfCellAndAppendValue(StringBuilder sb, String value, int columnWidth) {
         if (value.length() >= columnWidth) {
             sb.append(value).append(" │ ");
         } else {
@@ -95,11 +111,11 @@ public class QueryResultConsoleWriter {
         }
     }
 
-    protected static void replaceLastSymbol(StringBuilder sb, int tableWidth, String symbol) {
+    void replaceLastSymbol(StringBuilder sb, int tableWidth, String symbol) {
         sb.replace(tableWidth, tableWidth + 1, symbol);
     }
 
-    protected static int detectMaxWidthOfElement(List<String> headers, List<List<Object>> values, int columnNumber) {
+    int detectMaxWidthOfElement(List<String> headers, List<List<Object>> values, int columnNumber) {
         List<String> columnValues = new ArrayList<>();
         columnValues.add(headers.get(columnNumber));
         for (List<Object> value : values) {

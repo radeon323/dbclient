@@ -1,9 +1,13 @@
 package com.olshevchenko.dbclient;
 
+import com.olshevchenko.dbclient.entity.QueryResult;
 import com.olshevchenko.dbclient.service.QueryHandler;
+import com.olshevchenko.dbclient.service.QueryResultConsoleWriter;
+import com.olshevchenko.dbclient.service.QueryResultHtmlWriter;
+import com.olshevchenko.dbclient.utils.DriverConfig;
 import com.olshevchenko.dbclient.utils.PropertiesReader;
-import org.postgresql.ds.PGSimpleDataSource;
 
+import javax.sql.DataSource;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -13,22 +17,24 @@ import java.util.Scanner;
 public class Starter {
 
     public static void main(String[] args) {
-        Properties properties = PropertiesReader.getProperties();
-        final String jdbcName = properties.getProperty("jdbc_name");
-        final String jdbcUser = properties.getProperty("jdbc_user");
-        final String jdbcPassword = properties.getProperty("jdbc_password");
+        Properties properties = PropertiesReader.getProperties("application.properties");
+        String pathToHtmlResult = properties.getProperty("report.html");
 
-        PGSimpleDataSource pgSimpleDataSource = new PGSimpleDataSource();
-        pgSimpleDataSource.setDatabaseName(jdbcName);
-        pgSimpleDataSource.setUser(jdbcUser);
-        pgSimpleDataSource.setPassword(jdbcPassword);
-
+        DriverConfig driverConfig = new DriverConfig(properties);
+        DataSource driver = driverConfig.dataSource();
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.print("Enter your query: ");
             String query = scanner.nextLine();
-                QueryHandler queryHandler = new QueryHandler(pgSimpleDataSource, query);
-                queryHandler.handle();
+
+            QueryHandler queryHandler = new QueryHandler(driver);
+            QueryResult queryResult = queryHandler.handle(query);
+
+            QueryResultConsoleWriter consoleWriter = new QueryResultConsoleWriter(queryResult);
+            consoleWriter.writeResult();
+
+            QueryResultHtmlWriter htmlWriter = new QueryResultHtmlWriter(queryResult, pathToHtmlResult);
+            htmlWriter.writeResult();
         }
     }
 
