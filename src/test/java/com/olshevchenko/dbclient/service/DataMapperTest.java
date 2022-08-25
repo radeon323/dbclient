@@ -31,19 +31,16 @@ class DataMapperTest {
         when(metaData.getColumnName(2)).thenReturn("name");
         when(metaData.getColumnName(3)).thenReturn("age");
 
-        //TODO does not set values!!
-        when(rs.getObject("id")).thenReturn(List.of (1));
-        when(rs.getObject("name")).thenReturn(List.of ("Sasha"));
-        when(rs.getObject("age")).thenReturn(List.of (40));
+        when(rs.next()).thenReturn(true).thenReturn(false);
+        when(rs.getObject(1)).thenReturn(1);
+        when(rs.getObject(2)).thenReturn("Sasha");
+        when(rs.getObject(3)).thenReturn(40);
 
         QueryResult queryResult = dataMapper.extractQuery(rs);
 
-        System.out.println(queryResult);
-
         assertEquals("persons", queryResult.getTableName());
         assertEquals(List.of ("id","name","age"), queryResult.getHeaders());
-
-        assertEquals(List.of (List.of (1),List.of ("Sasha"),List.of (40)), queryResult.getValues());
+        assertEquals(List.of (List.of (1,"Sasha",40)), queryResult.getValues());
     }
 
 
@@ -69,17 +66,17 @@ class DataMapperTest {
         assertEquals(List.of ("id","name","age"), headers);
     }
 
-    //TODO does not set values!!
     @Test
     void testGetRows() throws SQLException {
         DataMapper dataMapper = new DataMapper();
         ResultSet rs = mock(ResultSet.class);
-        when(rs.getObject("id")).thenReturn(List.of (1));
-        when(rs.getObject("name")).thenReturn(List.of ("Sasha"));
-        when(rs.getObject("age")).thenReturn(List.of (40));
+        when(rs.next()).thenReturn(true).thenReturn(false);
+        when(rs.getObject(1)).thenReturn(1);
+        when(rs.getObject(2)).thenReturn("Sasha");
+        when(rs.getObject(3)).thenReturn(40);
 
         List<List<Object>> rows = dataMapper.getRows(rs,3);
-        assertEquals(List.of (List.of (1),List.of ("Sasha"),List.of (40)), rows);
+        assertEquals(List.of (List.of (1,"Sasha",40)), rows);
     }
 
 
