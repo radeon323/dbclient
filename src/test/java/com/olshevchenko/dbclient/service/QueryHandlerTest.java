@@ -30,10 +30,10 @@ class QueryHandlerTest {
     static void beforeAll() {
         QUERY_RESULT.setTableName("persons");
         QUERY_RESULT.setHeaders(List.of ("id","name","age"));
-        QUERY_RESULT.setValues(List.of (List.of (1),List.of ("Sasha"),List.of (40)));
+        QUERY_RESULT.setValues(List.of (List.of (1,"Sasha",40)));
+        QUERY_RESULT.setOperator(SqlOperator.SELECT);
     }
 
-    //TODO:  dataMapperMock does not set values
     @Test
     void testHandleResultSet() throws SQLException {
 
@@ -51,13 +51,20 @@ class QueryHandlerTest {
         ResultSetMetaData metaData = mock(ResultSetMetaData.class);
         when(rs.getMetaData()).thenReturn(metaData);
 
-        DataMapper dataMapper = mock(DataMapper.class);
-        when(dataMapper.extractQuery(rs)).thenReturn(QUERY_RESULT);
+        when(metaData.getColumnCount()).thenReturn(3);
+        when(metaData.getTableName(1)).thenReturn("persons");
+        when(metaData.getColumnName(1)).thenReturn("id");
+        when(metaData.getColumnName(2)).thenReturn("name");
+        when(metaData.getColumnName(3)).thenReturn("age");
+
+        when(rs.next()).thenReturn(true).thenReturn(false);
+        when(rs.getObject(1)).thenReturn(1);
+        when(rs.getObject(2)).thenReturn("Sasha");
+        when(rs.getObject(3)).thenReturn(40);
 
         QueryResult actual = queryHandler.handleResultSet(query, SqlOperator.SELECT);
 
         assertEquals(QUERY_RESULT, actual);
-
     }
 
 
