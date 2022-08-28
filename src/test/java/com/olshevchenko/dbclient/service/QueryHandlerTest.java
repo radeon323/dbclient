@@ -42,11 +42,11 @@ class QueryHandlerTest {
         Connection connection = mock(Connection.class);
         when(dataSource.getConnection()).thenReturn(connection);
 
-        PreparedStatement preparedStatement = mock(PreparedStatement.class);
-        when(connection.prepareStatement(query)).thenReturn(preparedStatement);
+        Statement statement = mock(Statement.class);
+        when(connection.createStatement()).thenReturn(statement);
 
         ResultSet rs = mock(ResultSet.class);
-        when(preparedStatement.executeQuery()).thenReturn(rs);
+        when(statement.executeQuery(query)).thenReturn(rs);
 
         ResultSetMetaData metaData = mock(ResultSetMetaData.class);
         when(rs.getMetaData()).thenReturn(metaData);

@@ -18,6 +18,6 @@ public class QueryResult {
     private String tableName;
     private List<String> headers;
     private List<List<Object>> values;
-    private int rowsUpdated = 0;
+    private int rowsUpdated;
     private SqlOperator operator;
 }

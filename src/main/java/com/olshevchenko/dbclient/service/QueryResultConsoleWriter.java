@@ -31,52 +31,15 @@ public class QueryResultConsoleWriter {
         StringBuilder rowsSeparator = new StringBuilder("├");
         StringBuilder bottomBorder = new StringBuilder("└");
 
-        int tableWidth = headers.size() * 3;
-        int columnCount = 0;
-
-        //append line separators and headers
         List<Integer> columnWidthsList = new ArrayList<>();
-        for (String header : headers) {
-            int columnWidth = detectMaxWidthOfElement(headers, values, columnCount);
-            columnWidthsList.add(columnWidth);
-            tableWidth += columnWidth;
-            String solidLine = "─".repeat(columnWidth + 2);
-            upperBorder.append(solidLine).append("┬");
-            extendWidthOfCellAndAppendValue(row, header, columnWidth);
-            rowsSeparator.append(solidLine).append("┼");
-            bottomBorder.append(solidLine).append("┴");
-            columnCount++;
-        }
 
-        //append values for cells
-        List<StringBuilder> lines = new ArrayList<>();
-        for (List<Object> valueList : values) {
-            StringBuilder valuesLine = new StringBuilder("│ ");
-            int i = 0;
-            for (Object value : valueList) {
-                extendWidthOfCellAndAppendValue(valuesLine, value.toString(), columnWidthsList.get(i++));
-            }
-            replaceLastSymbol(valuesLine, tableWidth, "│");
-            lines.add(valuesLine);
-        }
+        int tableWidth = appendRowSeparatorsAndHeadersAndReturnTableWidth(headers, values, upperBorder, row, rowsSeparator, bottomBorder, columnWidthsList);
 
-        //replace last symbol in table
-        replaceLastSymbol(upperBorder, tableWidth, "┐");
-        replaceLastSymbol(row, tableWidth, "│");
-        replaceLastSymbol(rowsSeparator, tableWidth, "┤");
-        replaceLastSymbol(bottomBorder, tableWidth, "┘");
+        List<StringBuilder> rows = appendValuesForCellsAndReturnListOfRowValues(values, columnWidthsList, tableWidth);
 
-        //print view
-        System.out.println(upperBorder);
-        System.out.println(row);
-        for (int i = 0; i < values.size(); i++) {
-            System.out.println(rowsSeparator);
-            System.out.println(lines.get(i));
-        }
-        System.out.println(bottomBorder);
+        replaceLastSymbolInTable(upperBorder, row, rowsSeparator, bottomBorder, tableWidth);
 
-        System.out.println("Command " + queryResult.getOperator() + " was successfully executed.");
-
+        printTableView(upperBorder, row, rowsSeparator, bottomBorder, rows);
     }
 
     void writeAction() {
@@ -93,6 +56,57 @@ public class QueryResultConsoleWriter {
             ed = "d.";
         }
         System.out.println("Command " + operator + " was successfully executed. " + rows + " " + row + " " + was + " " + operator.toString().toLowerCase() + ed);
+    }
+
+
+    private int appendRowSeparatorsAndHeadersAndReturnTableWidth(List<String> headers, List<List<Object>> values, StringBuilder upperBorder, StringBuilder row, StringBuilder rowsSeparator, StringBuilder bottomBorder, List<Integer> columnWidthsList) {
+        int columnCount = 0;
+        int tableWidth = headers.size() * 3;
+        for (String header : headers) {
+            int columnWidth = detectMaxWidthOfElement(headers, values, columnCount);
+            columnWidthsList.add(columnWidth);
+            tableWidth += columnWidth;
+            String solidLine = "─".repeat(columnWidth + 2);
+            upperBorder.append(solidLine).append("┬");
+            extendWidthOfCellAndAppendValue(row, header, columnWidth);
+            rowsSeparator.append(solidLine).append("┼");
+            bottomBorder.append(solidLine).append("┴");
+            columnCount++;
+        }
+        return tableWidth;
+    }
+
+    private List<StringBuilder> appendValuesForCellsAndReturnListOfRowValues(List<List<Object>> values, List<Integer> columnWidthsList, int tableWidth) {
+        List<StringBuilder> lines = new ArrayList<>();
+        for (List<Object> valueList : values) {
+            StringBuilder valuesLine = new StringBuilder("│ ");
+            int i = 0;
+            for (Object value : valueList) {
+                extendWidthOfCellAndAppendValue(valuesLine, value.toString(), columnWidthsList.get(i++));
+            }
+            replaceLastSymbol(valuesLine, tableWidth, "│");
+            lines.add(valuesLine);
+        }
+        return lines;
+    }
+
+    private void replaceLastSymbolInTable(StringBuilder upperBorder, StringBuilder row, StringBuilder rowsSeparator, StringBuilder bottomBorder, int tableWidth) {
+        replaceLastSymbol(upperBorder, tableWidth, "┐");
+        replaceLastSymbol(row, tableWidth, "│");
+        replaceLastSymbol(rowsSeparator, tableWidth, "┤");
+        replaceLastSymbol(bottomBorder, tableWidth, "┘");
+    }
+
+    private void printTableView(StringBuilder upperBorder, StringBuilder row, StringBuilder rowsSeparator, StringBuilder bottomBorder, List<StringBuilder> rows) {
+        System.out.println(upperBorder);
+        System.out.println(row);
+        for (StringBuilder stringBuilder : rows) {
+            System.out.println(rowsSeparator);
+            System.out.println(stringBuilder);
+        }
+        System.out.println(bottomBorder);
+
+        System.out.println("Command " + queryResult.getOperator() + " was successfully executed.");
     }
 
     private void extendWidthOfCellAndAppendValue(StringBuilder sb, String value, int columnWidth) {

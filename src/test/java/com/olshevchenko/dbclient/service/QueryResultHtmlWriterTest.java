@@ -18,28 +18,28 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class QueryResultHtmlWriterTest {
-    private static final QueryResult QUERY_RESULT = new QueryResult();
-    private static final String RESULT_DIR = PropertiesReader.getProperties("application.properties").getProperty("report.html");
-    private static final File RESOURCES_DIR = new File(RESULT_DIR);
+    private static final QueryResult queryResult = new QueryResult();
+    private static final String pathToResultDir = new PropertiesReader().getProperties("application.properties").getProperty("report.html.path");
+    private static final File resultDir = new File(pathToResultDir);
 
     @BeforeEach
     public void before() {
-        QUERY_RESULT.setTableName("persons");
-        QUERY_RESULT.setHeaders(List.of("id","name","age"));
-        QUERY_RESULT.setValues(List.of(List.of("1","Sasha","40"),List.of("2","Tolik","32")));
+        queryResult.setTableName("persons");
+        queryResult.setHeaders(List.of("id","name","age"));
+        queryResult.setValues(List.of(List.of("1","Sasha","40"),List.of("2","Tolik","32")));
     }
 
     @AfterAll
     static void afterAll() {
-        File htmlTable = new File(RESOURCES_DIR, "table_" + QUERY_RESULT.getTableName() + ".html");
+        File htmlTable = new File(resultDir, "table_" + queryResult.getTableName() + ".html");
         htmlTable.delete();
     }
 
     @Test
     void testWriteTable() {
-        QueryResultConsoleWriter queryResultConsoleWriter = new QueryResultConsoleWriter(QUERY_RESULT);
-        File htmlTable = new File(RESOURCES_DIR, "table_" + QUERY_RESULT.getTableName() + ".html");
-        queryResultConsoleWriter.writeTable();
+        QueryResultHtmlWriter queryResultHtmlWriter = new QueryResultHtmlWriter(queryResult,pathToResultDir);
+        File htmlTable = new File(resultDir, "table_" + queryResult.getTableName() + ".html");
+        queryResultHtmlWriter.writeTable();
         assertTrue(htmlTable.exists());
     }
 }
