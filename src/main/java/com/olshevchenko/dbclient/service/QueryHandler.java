@@ -29,11 +29,11 @@ public class QueryHandler {
 
     QueryResult handleResultSet(String query, SqlOperator operator) {
         try (Connection connection = dataSource.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            ResultSet rs = preparedStatement.executeQuery();) {
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(query)) {
 
-            DataMapper dataMapper = new DataMapper();
-            QueryResult queryResult = dataMapper.extractQuery(rs);
+            QueryResultMapper queryResultMapper = new QueryResultMapper();
+            QueryResult queryResult = queryResultMapper.extractQueryResult(rs);
             queryResult.setOperator(operator);
             return queryResult;
         } catch (SQLException e) {
@@ -44,7 +44,7 @@ public class QueryHandler {
 
     QueryResult handleAction(String query, SqlOperator operator) {
         try (Connection connection = dataSource.getConnection();
-            Statement statement = connection.createStatement();) {
+            Statement statement = connection.createStatement()) {
 
             int rows = statement.executeUpdate(query);
             QueryResult queryResult = new QueryResult();

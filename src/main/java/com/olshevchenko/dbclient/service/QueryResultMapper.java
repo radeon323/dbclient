@@ -11,9 +11,9 @@ import java.util.List;
 /**
  * @author Oleksandr Shevchenko
  */
-public class DataMapper {
+public class QueryResultMapper {
 
-    public QueryResult extractQuery(ResultSet resultSet) throws SQLException {
+    public QueryResult extractQueryResult(ResultSet resultSet) throws SQLException {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
         QueryResult queryResult = new QueryResult();

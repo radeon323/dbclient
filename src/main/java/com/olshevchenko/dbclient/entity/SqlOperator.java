@@ -19,7 +19,7 @@ public enum SqlOperator {
         return Arrays.stream(values())
                 .filter(statement -> query.toUpperCase().startsWith(statement.name()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Invalid statement: " + query.toUpperCase()));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid statement: " + query.toUpperCase()));
     }
 
 

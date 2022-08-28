@@ -4,7 +4,7 @@ import com.olshevchenko.dbclient.entity.QueryResult;
 import com.olshevchenko.dbclient.service.QueryHandler;
 import com.olshevchenko.dbclient.service.QueryResultConsoleWriter;
 import com.olshevchenko.dbclient.service.QueryResultHtmlWriter;
-import com.olshevchenko.dbclient.utils.DriverConfig;
+import com.olshevchenko.dbclient.utils.DataSourceFactory;
 import com.olshevchenko.dbclient.utils.PropertiesReader;
 
 import javax.sql.DataSource;
@@ -17,17 +17,18 @@ import java.util.Scanner;
 public class Starter {
 
     public static void main(String[] args) {
-        Properties properties = PropertiesReader.getProperties("application.properties");
-        String pathToHtmlResult = properties.getProperty("report.html");
+        PropertiesReader propertiesReader = new PropertiesReader();
+        Properties properties = propertiesReader.getProperties("application.properties");
+        String pathToHtmlResult = properties.getProperty("report.html.path");
 
-        DriverConfig driverConfig = new DriverConfig(properties);
-        DataSource driver = driverConfig.dataSource();
+        DataSourceFactory dataSourceFactory = new DataSourceFactory(properties);
+        DataSource dataSource = dataSourceFactory.createDataSource();
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.print("Enter your query: ");
             String query = scanner.nextLine();
 
-            QueryHandler queryHandler = new QueryHandler(driver);
+            QueryHandler queryHandler = new QueryHandler(dataSource);
             QueryResult queryResult = queryHandler.handle(query);
 
             QueryResultConsoleWriter consoleWriter = new QueryResultConsoleWriter(queryResult);

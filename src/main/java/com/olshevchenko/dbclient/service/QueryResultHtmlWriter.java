@@ -10,17 +10,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+
 /**
  * @author Oleksandr Shevchenko
  */
 @Slf4j
 public class QueryResultHtmlWriter {
     private final QueryResult queryResult;
-    private final File RESOURCES_DIR;
+    private final File resultDir;
 
-    public QueryResultHtmlWriter(QueryResult queryResult, String RESULT_DIR) {
+    public QueryResultHtmlWriter(QueryResult queryResult, String pathToResultDir) {
         this.queryResult = queryResult;
-        this.RESOURCES_DIR = new File(RESULT_DIR);
+        this.resultDir = new File(pathToResultDir);
     }
 
     private static final String ADD_TAGS_START =
@@ -29,7 +31,7 @@ public class QueryResultHtmlWriter {
                                                     <html>
                                                     <head>
                                                     <style>
-                                                    body {font-family: Arial, Helvetica, sans-serif;}
+                                                    body {font-family: Arial, Helvetica, sans-serif; }
                                                     h2 {text-align: center;}
                                                     table {margin: auto; text-align: center; border-collapse: collapse;}
                                                     td, th {padding:7px; padding-left:20px;padding-right:20px;border: 1px solid;}
@@ -50,29 +52,36 @@ public class QueryResultHtmlWriter {
     }
 
     void writeTable() {
-        if (!RESOURCES_DIR.isDirectory()) {
-            RESOURCES_DIR.mkdir();
+        if (!resultDir.isDirectory()) {
+            resultDir.mkdir();
         }
-        File htmlTable = new File(RESOURCES_DIR, "table_" + queryResult.getTableName() + ".html");
+        String tableName = "table_" + queryResult.getTableName() + ".html";
+        File htmlTableOut = new File(resultDir, tableName);
         List<String> headers = queryResult.getHeaders();
         List<List<Object>> values = queryResult.getValues();
 
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(htmlTable))) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(htmlTableOut))) {
             bufferedWriter.write(ADD_TAGS_START);
-            bufferedWriter.write("<h2>Table '" + queryResult.getTableName() + "':</h2>");
+            bufferedWriter.write("<h2>Table '");
+            bufferedWriter.write(queryResult.getTableName());
+            bufferedWriter.write("':</h2>");
 
             bufferedWriter.write("<table>");
 
             bufferedWriter.write("<tr>");
             for (String header : headers) {
-                bufferedWriter.write("<th>" + header + "</th>");
+                bufferedWriter.write("<th>");
+                bufferedWriter.write(escapeHtml(header));
+                bufferedWriter.write("</th>");
             }
             bufferedWriter.write("</tr>");
 
             for (List<Object> valueList : values) {
                 bufferedWriter.write("<tr>");
                 for (Object value : valueList) {
-                    bufferedWriter.write("<td>" + value + "</td>");
+                    bufferedWriter.write("<td>");
+                    bufferedWriter.write(escapeHtml(String.valueOf(value)));
+                    bufferedWriter.write("</td>");
                 }
                 bufferedWriter.write("</tr>");
             }
@@ -81,8 +90,8 @@ public class QueryResultHtmlWriter {
             bufferedWriter.write(ADD_TAGS_FINISH);
 
         } catch (IOException e) {
-            log.error("Cannot create file: {} ", htmlTable, e);
-            throw new RuntimeException("Cannot create file: {} " + htmlTable, e);
+            log.error("Cannot create file: {}", htmlTableOut, e);
+            throw new RuntimeException("Cannot create file: " + htmlTableOut, e);
         }
 
 
